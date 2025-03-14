@@ -9,7 +9,7 @@ import blackListFlow from "./blackList.flow";
 async function createGroupAndSendMessage(refAgentProvider, id, ctx) {
   const horaActual = moment().tz("America/Argentina/Buenos_Aires").format("DD/MM/YYYY HH:mm:ss");
   // Crear el grupo
-  const group = await refAgentProvider.groupCreate("Grupo agente AquaDreams", [id, '56945158011@s.whatsapp.net']);
+  const group = await refAgentProvider.groupCreate("Grupo agente AquaDreams", [id, process.env.WHATSAPP_ADMIN]);
   console.log('id', id);
   const gID = group.id;
   console.log("gID:", gID);
@@ -30,7 +30,7 @@ async function createGroupAndSendMessage(refAgentProvider, id, ctx) {
 
   // Enviar mensaje al grupo
   const message = {
-    text: `Escribanos en este grupo para hablar con nuestro personal`,
+    text: `ahora puede escribirnos en este grupo para hablar con nuestro personal`,
   };
   await refAgentProvider.sendMessage(gID, message);
 
@@ -72,5 +72,4 @@ const flowAgente = addKeyword(["agente", "Agente"], {
     }
   }
 );
-// .addAction({})
 export default flowAgente;

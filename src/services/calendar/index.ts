@@ -26,7 +26,7 @@ const appToSheets = async (text: string) => {
     try {
         const payload = JSON.parse(text)
         console.log(payload)
-        const dataApi = await fetch('https://hook.us2.make.com/k7tt5xerbzc6xyed9nrvcscarm1yv58r', {
+        const dataApi = await fetch(process.env.MAKE_WORKFLOW_APP_TO_SHEETS, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",

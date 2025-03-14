@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import mainLayer from "./layers/main.layer";
-import { join } from 'path';
+// import { join } from 'path';
 import { createBot, createProvider, createFlow, addKeyword } from '@builderbot/bot';
 import { MemoryDB as Database } from '@builderbot/bot';
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys';
@@ -9,13 +9,13 @@ import AIClass from './services/ai';
 import { flowConstruct } from './flows/construct.flow';
 import flowAgente from './flows/agent.flow';
 import { flowRepair } from './flows/repair.flow';
-import blackListFlow from './flows/blackList.flow';
+// import blackListFlow from './flows/blackList.flow';
 
 
 const PORT = process.env.PORT ?? 3008;
 const ai = new AIClass(process.env.OPEN_API_KEY, 'gpt-3.5-turbo-16k');
 
-const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola', 'buenas', 'buenos días', 'buenas tardes', 'buenas noches', 'buen día'])
+const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola', 'buenas','buenos dias', 'buenos días', 'buenas tardes', 'buenas noches', 'buen día', 'hola buenos días', 'Hola', 'Holis', 'pileta', 'hacer'])
     .addAnswer(`🙌 Hola bienvenido al *Chatbot* de AquaDreams`)
     .addAnswer(
         [
@@ -32,23 +32,13 @@ const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola', 'buen
             if (!(userInput.includes('construir') || userInput.includes('reparar') || userInput.includes('otro') || userInput.includes('agente'))) {
                 return fallBack('Debes escribir *CONSTRUIR, REPARAR, OTRO, AGENTE*');
             }
-
-            // if (userInput.includes('construir')) {
-            //     return gotoFlow(flowConstruct);
-            // } else if (userInput.includes('reparar')) {
-            //     return gotoFlow(flowRepair); // Asegúrate de que flowRepair esté definido
-            // } else if (userInput.includes('otro')) {
-            //     return gotoFlow(flowAgente);
-            // } else if (userInput.includes('agente')) {
-            //     return gotoFlow(flowAgente);
-            // }
         }
     )
     .addAction(conversationalLayer)
     .addAction(mainLayer);
 
 const main = async () => {
-    const adapterFlow = createFlow([welcomeFlow,flowConstruct, flowAgente]);
+    const adapterFlow = createFlow([welcomeFlow,flowConstruct, flowAgente, flowRepair]);
     const adapterProvider = createProvider(Provider);
     const adapterDB = new Database();
 

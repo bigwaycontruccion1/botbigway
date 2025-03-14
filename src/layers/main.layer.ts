@@ -1,7 +1,7 @@
 import { BotContext, BotMethods } from "@builderbot/bot/dist/types"
 import { getHistoryParse } from "../utils/handleHistory"
 import AIClass from "../services/ai"
-import { flowContract } from "../flows/contract.flow"
+// import { flowContract } from "../flows/contract.flow"
 import { getFullCurrentDate } from "src/utils/currentDate"
 import { flowConstruct } from "../flows/construct.flow"
 import { flowRepair } from "~/flows/repair.flow"
@@ -49,7 +49,7 @@ export default async (_: BotContext, { state, gotoFlow, extensions }: BotMethods
     console.log( "hola esta pasando por aqui para" , text);
 
     if (text.includes('HABLAR')) {
-        return gotoFlow(flowConstruct)
+        return gotoFlow(flowAgente)
     }
     if (text.includes('CONSTRUIR')) {
         return gotoFlow(flowConstruct)

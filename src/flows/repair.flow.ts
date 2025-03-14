@@ -4,11 +4,11 @@ import { getHistoryParse, handleHistory } from "../utils/handleHistory";
 import { generateTimer } from "../utils/generateTimer";
 // import { getCurrentCalendar } from "../services/calendar";
 import { getFullCurrentDate } from "src/utils/currentDate";
-import { BotState } from "@builderbot/bot/dist/types"
+// import { BotState } from "@builderbot/bot/dist/types"
 import flowAgente from "./agent.flow";
 
-const PROMPT_REPAIR = `Eres un asistente virtual especializado en ayudar a clientes interesados en reparar o remodelar o cambiar el revestimiento 
-de su pileta.
+const PROMPT_REPAIR = `Eres un asistente virtual especializado en ayudar a clientes interesados en reparar o modificar o cambiar el revestimiento 
+de su pileta, como por ejemplo filtraciones de agua.
 
 Fecha de hoy: {CURRENT_DAY}
 
@@ -19,13 +19,13 @@ Historial de Conversacion:
 INSTRUCCIONES:
 - NO saludes
 - Respuestas cortas ideales para enviar por whatsapp con emojis
+- preguntas como: estas interasado en hacer una remodelación o una reparacuión de tu pileta?
 -----------------------------
 Respuesta útil en primera persona:`
 
 const generateSchedulePrompt = (summary: string, history: string) => {
     const nowDate = getFullCurrentDate()
     const mainPrompt = PROMPT_REPAIR
-        // .replace('{AGENDA_ACTUAL}', summary)
         .replace('{HISTORIAL_CONVERSACION}', history)
         .replace('{CURRENT_DAY}', nowDate)
 
@@ -36,7 +36,6 @@ const generateSchedulePrompt = (summary: string, history: string) => {
  * Hable sobre todo lo referente a agendar citas, revisar historial saber si existe huecos disponibles
  */
 const flowRepair = addKeyword(EVENTS.ACTION).addAction(async (ctx, { extensions, state, flowDynamic }) => {
-    await flowDynamic('Perfecto, ahora necesitare hacerte algunas preguntas para tener una idea más clara de lo que necesita.')
     const ai = extensions.ai as AIClass
     const history = getHistoryParse(state)
     const list= '';
@@ -61,10 +60,15 @@ const flowRepair = addKeyword(EVENTS.ACTION).addAction(async (ctx, { extensions,
     }
     
 })
-// .addAnswer('', { capture: true }, async (ctx, { state, flowDynamic, gotoFlow }) => {
-//     // Aquí puedes usar gotoFlow
-//      console.log(' entra en addAnswer')
-//     return gotoFlow(flowAgente);
-// });
+.addAnswer(``, { capture: true }, async (ctx, { state, extensions, gotoFlow }) => {
+    await state.update({datos:ctx.body})
+    await state.update({telefono:ctx.from})
+    const history = getHistoryParse(state)
+    const infoCustomer = `telefono: ${state.get('telefono')}, datos: ${state.get('datos')}`   
+    const ai = extensions.ai as AIClass
+    return gotoFlow(flowAgente)
+   
+    
+})
 
 export { flowRepair }

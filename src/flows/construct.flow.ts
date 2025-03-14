@@ -44,7 +44,6 @@ Respuesta útil en primera persona:`
 const generateSchedulePrompt = (summary: string, history: string) => {
     const nowDate = getFullCurrentDate()
     const mainPrompt = PROMPT_CONSTRUCT
-        // .replace('{AGENDA_ACTUAL}', summary)
         .replace('{HISTORIAL_CONVERSACION}', history)
         .replace('{CURRENT_DAY}', nowDate)
 
@@ -72,7 +71,6 @@ const generateJsonParse = (info: string) => {
     }
     
     Objeto JSON a generar:`
-//   console.log('prompt= ',prompt)
     return prompt
 }
 /**
@@ -89,13 +87,9 @@ const flowConstruct = addKeyword(EVENTS.ACTION).addAction(async (ctx, { extensio
     await flowDynamic('9- ¿El terreno tiene pendiente hacia algún lado o es totalmente plano? 🌄')
     await flowDynamic('10- ¿Cuándo tenes pensado iniciar la construcción de la pileta? 🗓')
 })
-//  delay(2000)
 .addAnswer(`puedes responder todas estas preguntas en un sólo mensaje`, { capture: true }, async (ctx, { state, extensions, flowDynamic }) => {
     await state.update({datos:ctx.body})
     await state.update({telefono:ctx.from})
-    
-    // gotoflow(flowAgente)
-    // const ai = extensions.ai as AIClass
     const history = getHistoryParse(state)
     console.log('estoy en el flowconstruct')
     const infoCustomer = `telefono: ${state.get('telefono')}, datos: ${state.get('datos')}`   
