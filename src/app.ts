@@ -6,7 +6,7 @@ import { MemoryDB as Database } from '@builderbot/bot';
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys';
 import conversationalLayer from './layers/conversational.layer';
 import AIClass from './services/ai';
-import { flowConstruct } from './flows/construct.flow';
+import { flowConstruct, flowForm } from './flows/construct.flow';
 import flowAgente from './flows/agent.flow';
 import { flowRepair } from './flows/repair.flow';
 // import blackListFlow from './flows/blackList.flow';
@@ -15,22 +15,22 @@ import { flowRepair } from './flows/repair.flow';
 const PORT = process.env.PORT ?? 3008;
 const ai = new AIClass(process.env.OPEN_API_KEY, 'gpt-3.5-turbo-16k');
 
-const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola', 'buenas','buenos dias', 'buenos días', 'buenas tardes', 'buenas noches', 'buen día', 'hola buenos días', 'Hola', 'Holis', 'pileta', 'hacer'])
+const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola', 'buenas','buenos dias', 'buenos días', 'buenas tardes', 'buenas noches', 'buen día', 'hola buenos días', 'Hola', 'Holis', 'pileta', 'hacer', 'necesito', 'quiero'])
     .addAnswer(`🙌 Hola bienvenido al *Chatbot* de AquaDreams`)
     .addAnswer(
         [
             'Decime si estás interesado en:',
             '👉  *CONSTRUIR* para construir una pileta',
             '👉  *REPARAR* para reparar una pileta',
-            '👉  *OTRO* para hacer otras preguntas',
             '👉  *AGENTE* para hablar con uno de nuestros agentes',
+            '👉  *HOLA* para reinicar la conversación',
         ].join('\n'),
         { delay: 800, capture: true },
         async (ctx, { fallBack, gotoFlow }) => { // Asegúrate de incluir gotoFlow aquí
             const userInput = ctx.body.toLocaleLowerCase();
 
-            if (!(userInput.includes('construir') || userInput.includes('reparar') || userInput.includes('otro') || userInput.includes('agente'))) {
-                return fallBack('Debes escribir *CONSTRUIR, REPARAR, OTRO, AGENTE*');
+            if (!(userInput.includes('construir') || userInput.includes('reparar') || userInput.includes('agente'))) {
+                return fallBack('Debes escribir *CONSTRUIR, REPARAR, AGENTE*');
             }
         }
     )
@@ -38,7 +38,7 @@ const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola', 'buen
     .addAction(mainLayer);
 
 const main = async () => {
-    const adapterFlow = createFlow([welcomeFlow,flowConstruct, flowAgente, flowRepair]);
+    const adapterFlow = createFlow([welcomeFlow, flowConstruct, flowAgente, flowRepair, flowForm]);
     const adapterProvider = createProvider(Provider);
     const adapterDB = new Database();
 

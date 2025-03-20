@@ -28,6 +28,7 @@ export default async (_: BotContext, { state, gotoFlow, extensions }: BotMethods
     o necesita más información.
     3. REPARAR: esta acción se debe realizar si el cliente desea un presupuesto para reparar o modificarde su pileta, o simplemente modificar  la pileta, reparar la pileta . 
     4. HUMANO: es cuando el cliente tiene la clara intención de hablar con un humano.
+    5. HOLA: Si el cliente escribe la palabra Hola sin importar la capitalización de las letras la accion seera HOLA 
     -----------------------------
     Tu objetivo es comprender la intención del cliente y seleccionar la acción más adecuada en respuesta a su declaración.
     CONSIDERACIONES:
@@ -35,11 +36,11 @@ export default async (_: BotContext, { state, gotoFlow, extensions }: BotMethods
     "decime si estas interesado en:
 👉 1 o Construir para construir una pileta
 👉 2 o reparar para reparar una pileta
-👉 3 o Otra para hacer otras preguntas" 
+👉 3 o agente para conectarlo con un agente" 
     y la respuesta del cliente es 1 entonces la accón es CONSTRUIR, 
     si la respuesta del cliente es 2 entonces la acción es REPARAR, Si la respuesta del cliente es 3 entonces la acción es HABLAR
 
-    Respuesta ideal (CONSTRUIR|HABLAR|REPARAR|HUMANO):`.replace('{HISTORY}', history)
+    Respuesta ideal (CONSTRUIR|HABLAR|REPARAR|HUMANO|HOLA):`.replace('{HISTORY}', history)
     const text = await ai.createChat([
         {
             role: 'system',
@@ -57,8 +58,12 @@ export default async (_: BotContext, { state, gotoFlow, extensions }: BotMethods
     if (text.includes('REPARAR')) {
         return gotoFlow(flowRepair)
     }
-    if (text.includes('OTRA')){
+    if (text.includes('HUMANO')){
         return gotoFlow(flowAgente)
+    }
+    if (text.includes('HOLA')){
+        console.log('debe reiniciar el bot porqe escribio hola ')
+        // return gotoFlow(flowAgente)
     } 
 }
 // 04149427887
