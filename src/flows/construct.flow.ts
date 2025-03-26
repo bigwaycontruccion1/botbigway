@@ -5,8 +5,7 @@ import { generateTimer } from "../utils/generateTimer";
 import { getCurrentCalendar, appToSheets } from "../services/calendar";
 import { getFullCurrentDate } from "src/utils/currentDate";
 import flowAgente from "./agent.flow";
-// import flowValidation from "./validation.flow";
-// import { TFlow } from "@builderbot/bot/dist/types";
+
 
 
 const generateSchedulePrompt = (summary: string, history: string) => {
@@ -119,7 +118,77 @@ const generateJsonParse = (info: string,  preguntas: string) => {
     return prompt
 }
 
-const questions = {
+
+const generateJsonParse2 = (info: string,  preguntas: string, respuestasTexto: string ) => {
+    const prompt = `tu tarea principal es analizar la información proporcionada en el contexto e, 
+    identifica y extrae las respuestas a las siguientes preguntas: "${preguntas}".
+    Si alguna respuesta no está explícita en el texto "${info}", buscala en el siguiente texto: "${respuestasTexto}".
+    Si alguna respuesta no está explícita en el texto, enumera las preguntas faltantes y solicítame que ingrese la información
+    correspondiente, una por una.  
+    incluye una variable llamada completo, cuyo valor será verdadero si todas las preguntas tienen respuestas de lo contrario es false.
+
+   
+    Texto de entrada:  "${info}"
+    consideraciones Importantes a tener en cuenta:
+    - Las respuestas deben ser extraídas del texto proporcionado, sin modificarlas.
+    - sólo se puede colocar false o true en la clave "completo".
+    - si no reconoces una respuesta a una pregunta, debes marcarla como "No se proporcionó".
+
+
+    Preguntas con respuestas: ${respuestasTexto}
+    Formato de salida esperado:
+    Proporciona las respuestas identificadas en formato JSON.
+    Ejemplo de texto de entrada:
+    "Quiero construir una pileta de 8 metros de largo por 4 de ancho. Me gustaría que tenga luces y un jacuzzi. La obra se ubicará en el jardín trasero. No estoy seguro sobre el revestimiento, pero prefiero que sea revestida. El terreno es plano y planeo iniciar la construcción en dos meses."
+    
+    Ejemplo de salida esperada (respuestas incompletas):
+    json
+    {
+    "telefono": "584123456789", 
+    "dimensiones_pileta": "8 metros de largo por 4 de ancho",
+    "elemento_especial": "jacuzzi",
+    "ubicacion_obra": "jardín trasero",
+    "luces": "Sí",
+    "revestimiento_pintada": "revestida",
+    "tipo_revestimiento": "No se proporcionó",
+    "excavacion_maquina_mano": "No se proporcionó",
+    "tierra_pozo": "No se proporcionó",
+    "revestimiento_solarium": "No se proporcionó",
+    "pendiente_terreno": "plano",
+    "inicio_construccion": "en dos meses",
+    "completo": false
+    }
+    Preguntas faltantes:
+
+    ¿Sabes qué tipo de revestimiento te gustaría para la pileta?
+    ¿Hay espacio para que entre una máquina para excavar o la excavación debe hacerse a mano?
+    ¿La tierra del pozo quedará en el lugar o hay que retirarla del terreno?
+    ¿El revestimiento del solárium será de baldosones atermicos?
+    Por favor, ingresa la información para la pregunta: ¿Sabes qué tipo de revestimiento te gustaría para la pileta?
+    Ejemplo de salida esperada (respuestas completas):
+    json
+    {
+    "telefono": "584123456789",
+    "dimensiones_pileta": "8 metros de largo por 4 de ancho",
+    "elemento_especial": "jacuzzi",
+    "ubicacion_obra": "jardín trasero",
+    "luces": "Sí",
+    "revestimiento_pintada": "revestida",
+    "tipo_revestimiento": "mosaico azul",
+    "excavacion_maquina_mano": "Sí, hay espacio para una máquina",
+    "tierra_pozo": "Debe retirarse del terreno",
+    "revestimiento_solarium": "Sí, baldosones atermicos",
+    "pendiente_terreno": "plano",
+    "inicio_construccion": "en dos meses",
+    "completo": true
+    }`
+    // Objeto JSON a generar:`
+    console.log('contexto= ', info)
+    console.log('respuestasTexto= ', respuestasTexto)
+    return prompt
+}
+
+const preguntas = {
     "dimensiones_pileta": "1-¿Cuáles son las dimensiones de la pileta que deseas construir? ",
     "elemento_especial": "2-¿Quieres agregar algún elemento especial como jacuzzi, climatización, cascada?",
     "ubicacion_obra":" 3-¿Dónde se ubicará la obra? 📍 Esto nos permitirá conocer las condiciones del lugar y planificar la logística",
@@ -163,27 +232,42 @@ const identifyUnansweredQuestions = (jsonResponse: string, questions: Record<str
     return { unansweredQuestions:  unanswered};
 };
 
+function updateResponses(originalStr: string, updateStr: string): string {
+    // Parsear los strings a objetos
+    const original: Record<string, string | boolean> = JSON.parse(originalStr);
+    const update: Record<string, string | boolean> = JSON.parse(updateStr);
 
-const updateResponses = (original: string, updates: string): string => {
-    try {
-        // Convertir las cadenas JSON a objetos
-        const originalObj = JSON.parse(original || '{}');
-        const updatesObj = JSON.parse(updates || '{}');
+    // Crear un objeto para almacenar el resultado combinado
+    const resultado: Record<string, string | boolean> = {};
 
-        // Actualizar los valores del objeto original con los del objeto de actualizaciones
-        const updatedObj = { ...originalObj, ...updatesObj };
-
-        // Convertir el objeto actualizado de nuevo a una cadena JSON
-        return JSON.stringify(updatedObj, null, 2);
-    } catch (error) {
-        console.error('Error al procesar las respuestas:', error);
-        return original; // En caso de error, devolver el original sin cambios
+    // Combinar la información de ambos datos
+    for (const clave in original) {
+        if (Object.prototype.hasOwnProperty.call(original, clave)) {
+            // Priorizar el valor de dato1 si está presente
+            resultado[clave] = original[clave] || update[clave] || "No se proporcionó";
+        }
     }
-};
-let resp_correctas = ''
-let resp_faltantes = ""
+
+    // Asegurarse de incluir las claves de dato2 que no estén en dato1
+    for (const clave in update) {
+        if (Object.prototype.hasOwnProperty.call(update, clave) && !Object.prototype.hasOwnProperty.call(resultado, clave)) {
+            resultado[clave] = update[clave] || "No se proporcionó";
+        }
+    }
+
+    // Verificar si todas las claves tienen un valor diferente de "No se proporcionó"
+    resultado.completo = Object.values(resultado).every(
+        (valor) => valor !== "No se proporcionó"
+    );
+
+    // Convertir el resultado a un string JSON
+    return JSON.stringify(resultado);
+}
+let preguntas_respondidas = ''
+const resp_faltantes = ""
 /**
  */
+
 const flowConstruct = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { flowDynamic }) => {
         try {
@@ -228,43 +312,56 @@ const flowConstruct = addKeyword(EVENTS.ACTION)
                 // Obtener la instancia de IA
                 const ai = extensions.ai as AIClass;
 
-                // Generar el contenido para la IA
-                const systemContent = generateJsonParse(infoCustomer, JSON.stringify(questions));
+                // Función para verificar si todas las preguntas están respondidas
+                const checkAllQuestionsAnswered = async () => {
+                    // Generar el contenido para la IA
+                    const systemContent = generateJsonParse(infoCustomer, JSON.stringify(preguntas));
 
-                // Crear el chat con la IA
-                const text = await ai.createChat([
-                    {
-                        role: 'system',
-                        content: systemContent,
-                    },
-                ]);
+                    // Crear el chat con la IA
+                    const text = await ai.createChat([
+                        {
+                            role: 'system',
+                            content: systemContent,
+                        },
+                    ]);
 
-                console.log('Respuesta de la IA:', text);
+                    console.log('Respuesta de la IA:', text);
+                    await flowDynamic(`Respuesta de la IA: ${text}`);
+                    // Verificar si todas las preguntas están completas
+                    if (text.includes('completo: true')) {
+                        await flowDynamic('Gracias! Estaré analizando las respuestas.');
+                        await appToSheets(text); // Guardar en Google Sheets
+                        clearHistory(state); // Limpiar el historial
+                        await flowDynamic('Te estaremos conectando con uno de nuestros agentes. ¿Estás de acuerdo?');
+                        return true; // Todas las preguntas están respondidas
+                    } else {
+                        preguntas_respondidas = text
+                        
+                        // Si faltan preguntas, identificar cuáles son
+                        const { unansweredQuestions } = identifyUnansweredQuestions(text, preguntas);
+                        console.log('Preguntas sin responder:', unansweredQuestions.toString());
 
-                // Verificar si todas las preguntas están completas
-                if (text.includes('completo: true')) {
-                    await flowDynamic('Gracias! Estaré analizando las respuestas.');
-                    await appToSheets(text); // Guardar en Google Sheets
-                    clearHistory(state); // Limpiar el historial
-                    await flowDynamic('Te estaremos conectando con uno de nuestros agentes. ¿Estás de acuerdo?');
-                } else {
-                    // Si faltan preguntas, identificar cuáles son
-                    const { unansweredQuestions } = identifyUnansweredQuestions(text, questions);
-                    resp_faltantes = unansweredQuestions.toString();
+                        if (unansweredQuestions.length > 0) {
+                            await flowDynamic('Por favor, responde las siguientes preguntas:');
 
-                    console.log('Preguntas sin responder:', unansweredQuestions.toString());
+                            // Obtener las preguntas faltantes
+                            const chunks = getQuestionValuesByKeys(preguntas, unansweredQuestions.toString()).split(/(?<!\d)[.?]\s+|,\d+-¿/g);
 
-                    if (unansweredQuestions.length > 0) {
-                        await flowDynamic('Por favor, responde las siguientes preguntas:');
+                            // Enviar las preguntas faltantes con retraso
+                            for (const chunk of chunks) {
+                                await flowDynamic([{ body: chunk.trim(), delay: generateTimer(150, 250) }]);
+                            }
 
-                        // Dividir las preguntas en chunks y enviarlas con retraso
-                        // const chunks = unansweredQuestions.toString().split(/(?<!\d)[.?]\s+|,\d+-¿/g);
-                         const chunks=    getQuestionValuesByKeys(questions, unansweredQuestions.toString()).split(/(?<!\d)[.?]\s+|,\d+-¿/g);
-
-                        for (const chunk of chunks) {
-                            await flowDynamic([{ body: chunk.trim(), delay: generateTimer(150, 250) }]);
+                            return false; // Aún faltan preguntas por responder
                         }
+                    }
+                };
 
+                // Ciclo hasta que todas las preguntas estén respondidas
+                let allQuestionsAnswered = false;
+                while (!allQuestionsAnswered) {
+                    allQuestionsAnswered = await checkAllQuestionsAnswered();
+                    if (!allQuestionsAnswered) {
                         // Redirigir al flujo de formulario para capturar las respuestas faltantes
                         return gotoFlow(flowForm);
                     }
@@ -299,7 +396,7 @@ const flowForm = addKeyword(EVENTS.ACTION).addAnswer(
             const ai = extensions.ai as AIClass;
 
             // Generar el contenido para la IA
-            const systemContent = generateJsonParse(infoCustomer, resp_faltantes);
+            const systemContent = generateJsonParse2(infoCustomer, resp_faltantes, preguntas_respondidas);
 
             // Crear el chat con la IA
             const text = await ai.createChat([
@@ -309,12 +406,13 @@ const flowForm = addKeyword(EVENTS.ACTION).addAnswer(
                 }
             ]);
 
-            console.log('Respuestas correctas antes de actualizar:', resp_correctas);
-
+            console.log('Respuestas correctas antes de actualizar:', preguntas_respondidas);
+            await flowDynamic( `Respuestas correctas antes de actualizar: ${preguntas_respondidas}`);
             // Actualizar las respuestas correctas
-            resp_correctas = updateResponses(resp_correctas, text);
-
-            console.log('Respuestas correctas después de actualizar:', resp_correctas);
+            preguntas_respondidas = updateResponses(preguntas_respondidas, text);
+            
+            await flowDynamic( `Respuestas correctas después de actualizar: ${preguntas_respondidas}`);
+            console.log('Respuestas correctas después de actualizar:', preguntas_respondidas);
             console.log('Respuesta de la IA:', text);
 
             // Enviar la respuesta al usuario

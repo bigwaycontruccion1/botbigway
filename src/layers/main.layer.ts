@@ -3,9 +3,10 @@ import { getHistoryParse } from "../utils/handleHistory"
 import AIClass from "../services/ai"
 // import { flowContract } from "../flows/contract.flow"
 import { getFullCurrentDate } from "src/utils/currentDate"
-import { flowConstruct } from "../flows/construct.flow"
+import { flowConstruct } from "../flows/construct_.flow"
 import { flowRepair } from "~/flows/repair.flow"
 import flowAgente from "~/flows/agent.flow"
+import { flowConstructIa } from "~/flows/construc2.flow"
 
 /**
  * Determina que flujo va a iniciarse basado en el historial que previo entre el bot y el humano
@@ -14,8 +15,7 @@ export default async (_: BotContext, { state, gotoFlow, extensions }: BotMethods
     const ai = extensions.ai as AIClass
     const history = getHistoryParse(state)
     const date = getFullCurrentDate
-    //  console.log('entra en el main.layer.ts')
-    // console.log('history =  ', history)
+
     const prompt = `Como una inteligencia artificial avanzada, tu tarea es analizar el contexto de una conversación y determinar cuál
      de las siguientes acciones es más apropiada para realizar:
     --------------------------------------------------------
@@ -53,7 +53,7 @@ export default async (_: BotContext, { state, gotoFlow, extensions }: BotMethods
         return gotoFlow(flowAgente)
     }
     if (text.includes('CONSTRUIR')) {
-        return gotoFlow(flowConstruct)
+        return gotoFlow(flowConstructIa)
     }
     if (text.includes('REPARAR')) {
         return gotoFlow(flowRepair)
@@ -62,7 +62,7 @@ export default async (_: BotContext, { state, gotoFlow, extensions }: BotMethods
         return gotoFlow(flowAgente)
     }
     if (text.includes('HOLA')){
-        console.log('debe reiniciar el bot porqe escribio hola ')
+        console.log('debe reiniciar el bot porque escribio hola ')
         // return gotoFlow(flowAgente)
     } 
 }

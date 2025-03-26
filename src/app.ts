@@ -6,9 +6,11 @@ import { MemoryDB as Database } from '@builderbot/bot';
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys';
 import conversationalLayer from './layers/conversational.layer';
 import AIClass from './services/ai';
-import { flowConstruct, flowForm } from './flows/construct.flow';
+import { flowConstruct, flowForm } from './flows/construct_.flow';
 import flowAgente from './flows/agent.flow';
 import { flowRepair } from './flows/repair.flow';
+import { flowConstructIa } from './flows/construc2.flow';
+import { flowAgentConfirm } from './flows/confirmAgent.flow';
 // import blackListFlow from './flows/blackList.flow';
 
 
@@ -38,7 +40,7 @@ const welcomeFlow = addKeyword<Provider, Database>(['hi', 'hello', 'hola', 'buen
     .addAction(mainLayer);
 
 const main = async () => {
-    const adapterFlow = createFlow([welcomeFlow, flowConstruct, flowAgente, flowRepair, flowForm]);
+    const adapterFlow = createFlow([welcomeFlow, flowConstruct, flowAgente, flowRepair, flowForm, flowConstructIa, flowAgentConfirm]);
     const adapterProvider = createProvider(Provider);
     const adapterDB = new Database();
 
