@@ -83,8 +83,6 @@ const generateJsonParse = (info: string,  preguntas: string) => {
     return prompt
 }
 
-
-
 const generateJsonParse2= (info: string,  preguntas: string, respuestasTexto: string ) => {
 
 const prompt = `# Análisis y extracción de información para construcción de piletas

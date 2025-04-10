@@ -26,8 +26,8 @@ const getHistoryParse = (_state: BotStateStandAlone, k = 6): string => {
     }, '');
 };
 
-const clearHistory = async (_state: BotStateStandAlone) => {
-    _state.clear()
+const clearHistory = async (state: BotStateStandAlone) => {
+    state.clear()
 }
 
 

@@ -6,6 +6,7 @@ import { generateTimer } from "../utils/generateTimer";
 import { getFullCurrentDate } from "src/utils/currentDate";
 // import { BotState } from "@builderbot/bot/dist/types"
 import flowAgente from "./agent.flow";
+import { SelfBlackListFlow } from "./blackList.flow";
 
 const PROMPT_REPAIR = `Eres un asistente virtual especializado en ayudar a clientes interesados en reparar o modificar o cambiar el revestimiento 
 de su pileta, como por ejemplo filtraciones de agua.
@@ -60,15 +61,17 @@ const flowRepair = addKeyword(EVENTS.ACTION).addAction(async (ctx, { extensions,
     }
     
 })
-.addAnswer(``, { capture: true }, async (ctx, { state, extensions, gotoFlow }) => {
+.addAnswer(``, { capture: true }, async (ctx, { state, extensions, gotoFlow, flowDynamic }) => {
     await state.update({datos:ctx.body})
     await state.update({telefono:ctx.from})
     const history = getHistoryParse(state)
     const infoCustomer = `telefono: ${state.get('telefono')}, datos: ${state.get('datos')}`   
     const ai = extensions.ai as AIClass
-    return gotoFlow(flowAgente)
-   
-    
-})
+    await flowDynamic(`Un momento por favor ...`)
+    await flowDynamic(`pronto te contactará un agente`)
+    return gotoFlow(SelfBlackListFlow)
+
+    // return gotoFlow(flowAgente)
+}) 
 
 export { flowRepair }
